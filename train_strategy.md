@@ -11,7 +11,7 @@
 - 约束特征 env（cap/roster slack）
 - 工资帽影子价格（shadow price）头：$\lambda^{\mathrm{cap}}_t$
 - 显式成本调制（cost modulation）：$\tilde{a}_{i,t}=a_{i,t}-\lambda^{\mathrm{cap}}_t\,c_{i,t}$（实现为 embedding 级别的减法调制）
-- critic 分项：分别预测胜场项 $W$ 与利润项 $\Pi$，再用 $\lambda_{\text{win}}$ 合成
+- critic 分项：分别预测胜场项 $W$ 与利润项 $\Pi$，再用 $\lambda_{\mathrm{win}}$ 合成
 - 推理/评估采用 Top-K 复评解码（Top-K rerank）
 
 代码入口：
@@ -216,7 +216,7 @@ flowchart TB
 我们定义单赛季奖励（见 [model_general.md](model_general.md)）为胜场与利润的加权：
 
 $$
-r_t = \lambda_{\text{win}}\frac{W_t}{W^{*}} + (1-\lambda_{\text{win}})\frac{\Pi_t}{\Pi^{*}}
+r_t = \lambda_{\mathrm{win}}\frac{W_t}{W^{\ast}} + (1-\lambda_{\mathrm{win}})\frac{\Pi_t}{\Pi^{\ast}}
 $$
 
 最终采用 `critic_decompose=True`，让 critic 同时预测两项：
@@ -227,7 +227,7 @@ $$
 并按同一权重合成：
 
 $$
-V(s_t)=\lambda_{\text{win}}V^W(s_t)+(1-\lambda_{\text{win}})V^\Pi(s_t)
+V(s_t)=\lambda_{\mathrm{win}}V^W(s_t)+(1-\lambda_{\mathrm{win}})V^\Pi(s_t)
 $$
 
 为什么更可解释：
