@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+.vscode/
+
+# Large training artifacts
+/datasets/nn_runs/
+/datasets/nn_eval/
+/datasets/nn_eval_run/
+
+# Raw cached web pages (optional)
+/data/raw/**/bref_*.html
+
+# Torch checkpoints (safety net)
+*.pt

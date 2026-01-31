@@ -1,0 +1,38 @@
+[project]
+name = "mcm-2026-d"
+version = "0.1.0"
+description = "MCM 2026 Problem D - data generation + exact solver for roster optimization"
+requires-python = ">=3.11"
+readme = "README.md"
+
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "requests>=2.32",
+  "beautifulsoup4>=4.12",
+  "lxml>=5.2",
+  "typer>=0.12",
+  "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+# 为后续神经网络/数据驱动模型预留（默认不安装，按需 `uv sync --extra ml`）
+ml = [
+  "torch>=2.2",
+  "scikit-learn>=1.4",
+  "polars>=1.10",
+  "matplotlib>=3.8",
+]
+
+[project.scripts]
+mcm2026d = "mcm_2026_d.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.uv]
+package = true
