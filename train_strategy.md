@@ -216,7 +216,7 @@ flowchart TB
 我们定义单赛季奖励（见 [model_general.md](model_general.md)）为胜场与利润的加权：
 
 $$
-r_t = \lambda_{\text{win}}\frac{W_t}{W^*} + (1-\lambda_{\text{win}})\frac{\Pi_t}{\Pi^*}
+r_t = \lambda_{\text{win}}\frac{W_t}{W^{*}} + (1-\lambda_{\text{win}})\frac{\Pi_t}{\Pi^{*}}
 $$
 
 最终采用 `critic_decompose=True`，让 critic 同时预测两项：
