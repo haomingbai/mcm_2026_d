@@ -1,43 +1,43 @@
-# WNBA 球队动态决策优化模型
+# Dynamic Roster Decision Optimization Model for a WNBA Team
 
-## 0. 建模目标与总体框架
+## 0. Modeling goal and overall framework
 
-我们研究一个 WNBA 球队在多赛季规划期内的**阵容决策问题**，目标是在**竞技表现**与**财务收益**之间进行权衡优化。
+We study a WNBA team’s **roster decision problem** over a multi-season planning horizon. The goal is to optimize the trade-off between **competitive performance** and **financial returns**.
 
-模型采用 **马尔可夫决策过程（MDP）** 表述，其核心要素为：
+We formulate the problem as a **Markov decision process (MDP)** with the standard tuple
 
 $$
-\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle
+\langle \mathcal{S}, \mathcal{A}, P, R, \gamma \rangle.
 $$
 
-其中状态刻画球队所处环境与历史，动作代表赛季阵容选择，奖励同时反映胜场与利润。
+States describe the team context and history, actions correspond to season roster choices, and rewards capture both wins and profit.
 
 ---
 
-## 1. 符号规范与维度约定（强制统一）
+## 1. Notation and dimension conventions (must be consistent)
 
-### 1.1 基本记号约定
+### 1.1 Basic notation
 
-| 类型 | 记号形式 | 示例                              |
-| ---- | -------- | ----------------------------------|
-| 标量 | 小写斜体 | $x_{i,t},\ c_{i,t}$               |
-| 向量 | 粗体小写 | $\mathbf{x}_t,\ \mathbf{a}_{i,t}$ |
-| 矩阵 | 粗体大写 | $\mathbf{A}_t,\ \mathbf{X}$       |
-| 张量 | 花体大写 | $\mathcal{A}$                     |
+| Type | Notation | Example |
+| ---- | -------- | ------- |
+| Scalar | italic lowercase | $x_{i,t},\ c_{i,t}$ |
+| Vector | bold lowercase | $\mathbf{x}_t,\ \mathbf{a}_{i,t}$ |
+| Matrix | bold uppercase | $\mathbf{A}_t,\ \mathbf{X}$ |
+| Tensor | calligraphic uppercase | $\mathcal{A}$ |
 
-### 1.2 索引集合
+### 1.2 Index sets
 
-* 球员集合：$i \in \mathcal{I}$
-* 赛季集合：$t \in \{1,\dots,T\}$
-* 能力维度：$k \in \{1,\dots,K\}$
+- Players: $i \in \mathcal{I}$
+- Seasons: $t \in \{1,\dots,T\}$
+- Ability dimensions: $k \in \{1,\dots,K\}$
 
 ---
 
-## 2. 输入数据与决策变量
+## 2. Inputs and decision variables
 
-### 2.1 球员能力（多维、时序）
+### 2.1 Player ability (multi-dimensional, time-varying)
 
-#### 2.1.1 单球员能力向量
+#### 2.1.1 Single-player ability vector
 
 $$
 \mathbf{a}_{i,t}=
@@ -46,24 +46,22 @@ a_{i,t}^{(1)}\\
 \vdots\\
 a_{i,t}^{(K)}
 \end{bmatrix}
-\in \mathbb{R}^K
+\in \mathbb{R}^K.
 $$
 
-每一维对应一个**可观测或可估计的能力指标**，例如：
+Each component represents an observable/estimable skill indicator, for example:
 
-* 进攻效率（TS%）
-* 使用率（USG%）
-* 助攻率（AST%）
-* 防守影响（STL%、BLK%）
-* 篮板能力（ORB%、DRB%）
-* 场上影响（On/Off、BPM）
-* 出勤/负荷（MP、Games Played）
+- Offensive efficiency (TS%)
+- Usage (USG%)
+- Assist rate (AST%)
+- Defensive impact (STL%, BLK%)
+- Rebounding (ORB%, DRB%)
+- On-court impact (On/Off, BPM)
+- Availability/load (MP, games played)
 
-> 所有分量默认已标准化（z-score 或分位数归一化）。
+All components are assumed to be normalized (z-score or quantile normalization).
 
----
-
-#### 2.1.2 赛季能力矩阵
+#### 2.1.2 Season ability matrix
 
 $$
 \mathbf{A}_t=
@@ -73,267 +71,250 @@ $$
 \vdots\\
 \mathbf{a}_{|\mathcal{I}|,t}^\top
 \end{bmatrix}
-\in \mathbb{R}^{|\mathcal{I}|\times K}
+\in \mathbb{R}^{|\mathcal{I}|\times K}.
 $$
 
----
-
-#### 2.1.3 多赛季能力张量
+#### 2.1.3 Multi-season ability tensor
 
 $$
 \mathcal{A}\in \mathbb{R}^{T\times|\mathcal{I}|\times K},
 \qquad
-\mathcal{A}[t,i,:]=\mathbf{a}_{i,t}
+\mathcal{A}[t,i,:]=\mathbf{a}_{i,t}.
 $$
 
 ---
 
-### 2.2 阵容决策变量
+### 2.2 Roster decision variables
 
-#### 2.2.1 单球员决策（标量）
+#### 2.2.1 Per-player binary decision
 
 $$
 x_{i,t}=
 \begin{cases}
-1, & \text{球员 } i \text{ 在赛季 } t \text{ 属于阵容}\\
-0, & \text{否则}
+1, & \text{player } i \text{ is on the roster in season } t\\
+0, & \text{otherwise}
 \end{cases}
 $$
 
----
-
-#### 2.2.2 赛季阵容向量
+#### 2.2.2 Season roster vector
 
 $$
 \mathbf{x}_t=(x_{1,t},\dots,x_{|\mathcal{I}|,t})^\top
-\in \{0,1\}^{|\mathcal{I}|}
+\in \{0,1\}^{|\mathcal{I}|}.
 $$
 
----
-
-#### 2.2.3 多赛季阵容矩阵
+#### 2.2.3 Multi-season roster matrix
 
 $$
 \mathbf{X}=[\mathbf{x}_1,\dots,\mathbf{x}_T]
-\in \{0,1\}^{|\mathcal{I}|\times T}
+\in \{0,1\}^{|\mathcal{I}|\times T}.
 $$
 
 ---
 
-## 3. 状态空间（State）
+## 3. State space
 
-赛季 $t$ 开始时的系统状态定义为：
+At the beginning of season $t$, define the system state as
 
 $$
-s_t=(\mathbf{x}_{t-1},\ \mathbf{A}_t,\ \mathbf{e}_t)\in \mathcal{S}
+s_t=(\mathbf{x}_{t-1},\ \mathbf{A}_t,\ \mathbf{e}_t)\in \mathcal{S},
 $$
 
-其中：
+where
 
-* $\mathbf{x}_{t-1}$：上赛季阵容（**时序依赖的唯一来源**）
-* $\mathbf{A}_t$：当季球员能力输入
-* $\mathbf{e}_t=(N_t, C_t, G_t)$：外部环境
+- $\mathbf{x}_{t-1}$: previous-season roster (the **only source of temporal dependence**)
+- $\mathbf{A}_t$: current-season player ability inputs
+- $\mathbf{e}_t=(N_t, C_t, G_t)$: external environment
+  - $N_t$: number of teams in the league
+  - $C_t$: salary cap
+  - $G_t$: number of games in the season
 
-  * $N_t$：联盟球队数
-  * $C_t$：工资帽
-  * $G_t$：赛季场次
-
-> ⚠️ 注意：**能力不是决策结果，而是环境给定或预测的输入**，避免时序混淆。
+Note: abilities are treated as exogenous inputs (given or predicted), not as decision outcomes.
 
 ---
 
-## 4. 动作空间（Action）
+## 4. Action space
 
-在状态 $s_t$ 下，球队选择赛季阵容：
+Given state $s_t$, the team chooses a season roster:
 
 $$
-a_t \equiv \mathbf{x}_t \in \mathcal{A}
+a_t \equiv \mathbf{x}_t \in \mathcal{A}.
 $$
 
-动作受以下硬约束限制：
+Actions must satisfy hard constraints:
 
-* 工资帽：
+- Salary cap:
   $$
-  \sum_{i} c_{i,t} x_{i,t} \le C_t
+  \sum_i c_{i,t}x_{i,t} \le C_t
   $$
-* 阵容规模：
+- Roster size:
   $$
   L \le \sum_i x_{i,t} \le U
   $$
 
 ---
 
-## 5. 球队实力建模（核心结构）
+## 5. Team strength modeling (core structure)
 
-### 5.1 阵容能力聚合（向量）
+### 5.1 Aggregate roster ability (vector)
 
 $$
 \mathbf{u}_t=\sum_{i\in\mathcal{I}} x_{i,t}\,\mathbf{a}_{i,t}
-\in \mathbb{R}^K
+\in \mathbb{R}^K.
 $$
+
+### 5.2 Map to a scalar team quality
+
+**Linear version (interpretable):**
+
+$$
+Q_t = \mathbf{w}^\top \mathbf{u}_t,
+$$
+
+where $\mathbf{w}\in\mathbb{R}^K$ are ability weights.
+
+**Nonlinear version (recommended):**
+
+$$
+Q_t = g(\mathbf{u}_t;\theta),
+$$
+
+where $g$ can be a neural network or a tree-based model.
 
 ---
 
-### 5.2 综合实力映射（标量）
+## 6. Win probability and season wins
 
-#### 线性版本（可解释）
-
-$$
-Q_t = \mathbf{w}^\top \mathbf{u}_t
-$$
-
-其中 $\mathbf{w}\in\mathbb{R}^K$ 表示能力权重。
-
-#### 非线性版本（推荐）
-
-$$
-Q_t = g(\mathbf{u}_t;\theta)
-$$
-
-其中 $g$ 可为神经网络或树模型。
-
----
-
-## 6. 胜率与胜场
-
-### 6.1 单场胜率
+### 6.1 Per-game win probability
 
 $$
 p_t = \sigma\bigl(Q_t - Q_t^{\text{opp}}\bigr),
 \quad
-\sigma(z)=\frac{1}{1+e^{-z}}
+\sigma(z)=\frac{1}{1+e^{-z}}.
+$$
+
+### 6.2 Season wins
+
+$$
+W_t = G_t \cdot p_t.
 $$
 
 ---
 
-### 6.2 赛季胜场
+## 7. Financial model
+
+### 7.1 Cost
 
 $$
-W_t = G_t \cdot p_t
+Cost_t = \sum_i c_{i,t}x_{i,t}.
 $$
 
----
-
-## 7. 财务模型
-
-### 7.1 成本
+### 7.2 Revenue (linear approximation)
 
 $$
-Cost_t = \sum_i c_{i,t} x_{i,t}
+R_t = R_t^{\text{base}} + \rho W_t.
 $$
 
----
-
-### 7.2 收入（线性近似）
+### 7.3 Profit
 
 $$
-R_t = R_t^{\text{base}} + \rho W_t
+\Pi_t = R_t - Cost_t.
 $$
 
 ---
 
-### 7.3 利润
+## 8. Reward function and objective
 
-$$
-\Pi_t = R_t - Cost_t
-$$
-
----
-
-## 8. 奖励函数与目标
-
-### 8.1 单赛季奖励
+### 8.1 Single-season reward
 
 $$
 r_t
 =\lambda_{\text{win}} \frac{W_t}{W^\ast}
-+(1-\lambda_{\text{win}})\frac{\Pi_t}{\Pi^\ast}
++(1-\lambda_{\text{win}})\frac{\Pi_t}{\Pi^\ast}.
 $$
 
-> 符号说明：本文中的 $\lambda_{\text{win}}\in[0,1]$ 表示“胜场 vs 利润”的权重（代码里对应 `lambda_win`）。
-> 在神经网络结构中我们还引入了一个随时间变化的“工资帽影子价格”（代码字段 `lambda_t`），建议在文字表述中记为 $\lambda^{\text{cap}}_t$ 以避免混淆。
+Notation:
+
+- $\lambda_{\text{win}}\in[0,1]$ weights “wins vs. profit” (corresponds to `lambda_win` in code).
+- The neural network implementation also introduces a time-varying “salary-cap shadow price” (field `lambda_t`). In the write-up, we recommend denoting it as $\lambda^{\text{cap}}_t$ to avoid confusion with $\lambda_{\text{win}}$.
+
+### 8.2 Multi-season objective
+
+$$
+\max_{\pi}\ \mathbb{E}_{\pi}\left[\sum_{t=1}^T \gamma^{t-1} r_t\right],
+$$
+
+where the policy $\pi : s_t \mapsto \mathbf{x}_t$.
 
 ---
 
-### 8.2 多赛季目标
+## 9. Data sources and extensibility
 
-$$
-\max_{\pi}\ \mathbb{E}_{\pi}\left[\sum_{t=1}^T \gamma^{t-1} r_t\right]
-$$
+This section summarizes the external data required by the model and possible extensions. Since data quality directly impacts decision quality, prefer official/authoritative sources and perform thorough cleaning/standardization.
 
-其中策略 $\pi : s_t \mapsto \mathbf{x}_t$。
+### 9.1 Player ability data
 
----
+The ability vector $\mathbf{a}_{i,t}\in\mathbb{R}^K$ can include offensive efficiency, usage, assist rate, defensive contribution, etc. Potential sources:
 
-## 9. 数据来源与可扩展性说明
+- **Official WNBA Stats** (<https://stats.wnba.com/>): basic stats and some advanced stats.
+- **Basketball-Reference (WNBA)** (<https://www.basketball-reference.com/wnba/>): season/player advanced summaries (TS%, USG%, On/Off, BPM, etc.).
+- **Her Hoop Stats** (<https://herhoopstats.com/>): salary/cap info and additional analytics (some features may require subscription).
 
-本节详细阐述模型各部分所需的外部数据来源、采集方式以及未来可能的扩展方向。由于数据质量直接决定决策质量，建议优先选用官方或权威数据渠道，并在模型训练前进行充分清洗与标准化。
+### 9.2 Environment and financial parameters
 
-### 9.1 球员能力数据来源
+#### 9.2.1 League size and schedule length
 
-模型中球员能力向量 $\mathbf{a}_{i,t}\in\mathbb{R}^K$ 涵盖进攻效率、使用率、助攻率、防守贡献等多维指标。以下数据源可提供所需统计：
+The environment vector $\mathbf{e}_t=(N_t, C_t, G_t)$ includes number of teams $N_t$, salary cap $C_t$, and number of games $G_t$.
 
-* **官方 WNBA Stats**（<https://stats.wnba.com/>）：提供基础数据（得分、篮板、助攻等）及部分进阶统计，可用于构造能力向量特征。
-* **Basketball-Reference（WNBA）**（<https://www.basketball-reference.com/wnba/>）：提供赛季/球员高级统计汇总（如 TS%、USG% 等）以及 On/Off、BPM 等影响力指标，适合做特征补充与交叉验证。
-* **Her Hoop Stats**（<https://herhoopstats.com/>）：提供薪资、工资帽与部分进阶评价工具（部分内容可能需要订阅），可用于财务参数与能力指标的补充。
+- **$G_t$ (games):** may change by season; updating $G_t$ is sufficient when it does.
+- **$C_t$ (cap) and roster size:** use CBA/salary databases for the cap; set $(L,U)$ based on league roster rules.
 
-### 9.2 环境与财务参数来源
+#### 9.2.2 Ticketing and media revenue
 
-#### 9.2.1 联盟规模与赛程长度
+Because team revenues are not fully public, estimate baseline revenue $R_t^{\text{base}}$ and per-win incremental revenue $\rho$ from market statistics.
 
-模型的外部环境向量 $\mathbf{e}_t=(N_t, C_t, G_t)$ 包含联盟球队数 $N_t$、工资帽 $C_t$ 和赛季场次 $G_t$。这些参数可根据联盟公告确定。
+- Ticket price and attendance can be used to estimate ticket revenue scale, then fit $R_t^{\text{base}}$ and $\rho$.
+- If star players cause large ticket bumps, capture this via a larger $\rho$ or an explicit “star effect” variable.
+- Media rights and revenue-sharing can inform a stable baseline $R_t^{\text{base}}$ (then add tickets/sponsorships).
 
-* **赛季场次 $G_t$**：常规赛场次可能随赛季调整；未来赛季如有变化，只需更新 $G_t$。
-* **工资帽 $C_t$ 与阵容规模**：工资帽与薪资规则通常由 CBA/薪资数据库汇总给出；阵容上下限 $(L,U)$ 可按联盟注册要求设定。
+#### 9.2.3 Data collection recommendations
 
-#### 9.2.2 票务与媒体收入
+- **Standardize ability features:** use z-score or quantile normalization across metrics.
+- **Timing and forecasting:** cap/schedule/ticketing are typically known before the season; abilities can be estimated from prior seasons plus predictive models.
+- **Automation:** use scripts to periodically pull WNBA Stats and salary/cap sources; update business variables from public announcements/news as needed.
 
-由于球队收益并非完全公开，模型需根据市场统计推断基准收入 $R_t^{\text{base}}$ 及单胜增量收益 $\rho$。
+### 9.3 Possible extensions
 
-* **平均票价与球迷人数**：可结合票价与上座率/观众数等公开统计估算门票收入量级，并据此拟合 $R_t^{\text{base}}$ 与 $\rho$。
-* **明星效应与高票房场次**：当明星球员带来显著票房提升时，可将影响吸收到 $\rho$，或另设“明星效应”变量。
-* **转播与媒体收入**：媒体版权合同与分成信息可用于估算较稳定的基准收入 $R_t^{\text{base}}$（再叠加门票、赞助等）。
+Although this model focuses on a single-team roster optimization, it can be extended:
 
-#### 9.2.3 数据采集建议
-
-* **球员能力标准化**：由于各项指标量纲不同，建议对原始数据进行 z-score 或分位数归一化，确保维度可比。
-* **时间延迟与预测**：工资帽、赛程、票价等变量通常在赛季前确定，可作为确定性输入；球员能力可基于上一季与预测模型估计未来值。
-* **自动化采集工具**：建议用脚本定期拉取 WNBA Stats 与 Her Hoop Stats；票务与媒体信息可定期查阅公告或用新闻 API 更新。
-
-### 9.3 模型可扩展方向
-
-虽然本模型仅聚焦单队阵容优化，但结构上可以扩展到更复杂的场景：
-
-* **年龄衰减与伤病随机性**：在马尔可夫转移函数 $P$ 中加入年龄递减与伤病概率，使能力在未来赛季中呈随机变化，更贴近长期规划。
-* **位置与化学反应约束**：在决策变量 $\mathbf{x}_t$ 上加入位置配额等线性约束，或引入“化学反应”项避免阵容失衡。
-* **多球队博弈**：扩展为随机博弈（stochastic game），将其他球队决策纳入状态并重定义奖励。
-* **引入更多商业收入源**：除了门票和转播，还可加入周边商品销售、赞助合同等，使收益模型更完整。
-
-通过上述数据来源与扩展说明，读者可根据实际情况调整模型输入，并为后续的机器学习或仿真实验提供可信的数据基础。
+- **Aging decay and injury uncertainty:** incorporate age decline and injury probabilities into the transition $P$.
+- **Position/chemistry constraints:** add position quotas and/or “chemistry” terms to discourage imbalanced rosters.
+- **Multi-team interactions:** extend to a stochastic game where other teams’ decisions are included.
+- **Richer revenue streams:** add merchandising, sponsorships, etc.
 
 ---
 
-## 10. 模型常量设定与来源说明
+## 10. Recommended constants and their sources
 
-为便于使用者快速应用模型，本节列举关键常量的推荐取值及其来源。所有数值均基于公开资料推算，使用前应结合最新赛季信息进行调整。
+This section lists recommended default values for key constants (update them for the latest season). Values are rough public-data-based estimates and should be recalibrated when applying the model.
 
-### 10.1 推荐常量（默认值）
+### 10.1 Recommended constants (defaults)
 
-| 常量 | 推荐值（可按赛季更新） | 来源及理由（示例） |
+| Constant | Recommended value (update by season) | Source / rationale (examples) |
 | --- | --- | --- |
-| 阵容规模下限 $L$ | 11 | WNBA 规则/CBA 通常要求每队至少注册 11 名球员（可参考：<https://herhoopstats.com/> 相关薪金与规则汇总）。 |
-| 阵容规模上限 $U$ | 12 | 常规阵容人数上限通常为 12；若考虑伤病豁免等特殊情况可上调（参考：<https://herhoopstats.com/>）。 |
-| 工资帽 $C_t$ | \$1,500,000–\$1,600,000 | 2025 赛季工资帽约 \$1,507,100，且通常随年份增长；据此设置区间并逐年上调（参考：<https://herhoopstats.com/>）。 |
-| 赛季场次 $G_t$ | 40–44 场 | 2024 赛季为 40 场，2025 起增至 44 场（可参考：<https://thenexthoops.com/>、<https://www.cbssports.com/> 相关新闻与赛程公告）。 |
-| 基准收入 $R_t^{\text{base}}$ | \$20,000,000 / 赛季 | 用媒体版权分成与门票收入的量级估算得到，代表不依赖胜场的固定收入（示例参考：<https://www.forbes.com/> 等媒体合同报道）。 |
-| 胜场增量收益 $\rho$ | \$500,000–\$800,000 / 胜 | 单场票房在普通比赛与明星效应比赛间差异较大；用区间刻画“多赢一场”带来的增量收入（示例参考：<https://sports.yahoo.com/> 票房报道）。 |
-| 胜场归一化常数 $W^*$ | $G_t$ | 最多胜场数等于赛季总场次，常设 $W^* = G_t$。 |
-| 利润归一化常数 $\Pi^*$ | $R_t^{\text{base}}$ | 为使奖励函数两项同量纲，将利润按基准收入归一化，即 $\Pi^* = R_t^{\text{base}}$。 |
-| 奖励权重 $\lambda_{\text{win}}$ | 0.5–0.7 | $\lambda_{\text{win}}$ 控制胜场与利润权衡：偏竞技可取 0.6–0.7，偏财务平衡可取 0.4–0.5。 |
-| 折扣因子 $\gamma$ | 0.9 | 反映未来奖励现值，通常取 $\gamma \approx 0.9$（可参考：<https://zilliz.com/> 等 RL 折扣因子科普/指南）。 |
+| Roster lower bound $L$ | 11 | WNBA rules/CBA generally require at least 11 players; see salary/rules summaries at <https://herhoopstats.com/>. |
+| Roster upper bound $U$ | 12 | Typical roster cap is 12; adjust for special exemptions if needed; see <https://herhoopstats.com/>. |
+| Salary cap $C_t$ | $\$1{,}500{,}000$–$\$1{,}600{,}000$ | Example: 2025 cap is about $\$1{,}507{,}100$ and grows by year; use a range and increase annually; see <https://herhoopstats.com/>. |
+| Games per season $G_t$ | 40–44 | Example: 2024 had 40 games and later seasons increased (e.g., 44); confirm via schedule announcements/news. |
+| Baseline revenue $R_t^{\text{base}}$ | $\$20{,}000{,}000$ / season | Order-of-magnitude estimate from media rights sharing + ticket revenue; calibrate with available reporting. |
+| Incremental revenue per win $\rho$ | $\$500{,}000$–$\$800{,}000$ / win | Ticket bumps vary widely (including star effects); model as a range and recalibrate. |
+| Win normalization $W^*$ | $G_t$ | Maximum wins equals total games, so set $W^*=G_t$. |
+| Profit normalization $\Pi^*$ | $R_t^{\text{base}}$ | Normalize profit by baseline revenue to match scales: $\Pi^*=R_t^{\text{base}}$. |
+| Reward weight $\lambda_{\text{win}}$ | 0.5–0.7 | Controls wins vs. profit; choose 0.6–0.7 for performance-first, 0.4–0.5 for financial balance. |
+| Discount factor $\gamma$ | 0.9 | Common RL choice reflecting present value of future rewards. |
 
-### 10.2 使用建议
+### 10.2 Practical tips
 
-* 若用于特定赛季，请用当季公告更新 $C_t,\ G_t$。
-* 若市场波动较大，建议用历史回归/对比试验重新校准 $R_t^{\text{base}}$ 与 $\rho$。
-* 作为默认设置，上表仅提供数量级与区间，便于快速跑通仿真与策略评估。
+- For a specific season, update $C_t$ and $G_t$ from official announcements.
+- If the market changes, re-fit $R_t^{\text{base}}$ and $\rho$ from historical/regression analysis.
+- The table provides magnitudes/ranges mainly to help you quickly run simulations and policy evaluation.

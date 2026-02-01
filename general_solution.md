@@ -1,155 +1,153 @@
-# General Solution（整体方案：数据→最优解→训练→强化学习微调）
+# General Solution (End-to-end: Data → Optimal Labels → Training → RL Fine-tuning)
 
-本文档给出一条“端到端”的可复现路线：从真实数据抓取开始，构建小规模可精确求解的数据集，再训练一个可解释的神经策略网络，并用强化学习对目标函数进行微调。
+This document provides a reproducible end-to-end pipeline: starting from real-world data collection, we build a small-scale dataset that can be solved exactly, then train an interpretable neural policy, and finally fine-tune it with reinforcement learning.
 
-> 一句话总结：
-> 我们用确定性搜索/DP 解决“小规模最优解”，再用神经网络学习“可扩展的近似最优策略”，并用 RL 直接对齐原始 objective。
-
----
-
-## 1. 真实数据获取：爬虫抓取 WNBA 球员特征池
-
-### 1.1 数据来源与目标
-
-- 来源：Basketball-Reference 的 WNBA 年度 advanced 页面（按赛季）。
-- 目标：为“候选球员池”提供尽可能真实的统计特征分布（能力向量、出场等）。
-
-### 1.2 处理流程
-
-1) 下载 HTML（每赛季一页）
-2) 解析表格字段 → 统一字段命名/缺失值处理
-3) 形成“球员特征池”（pool），作为后续实例生成的采样来源
+> One-sentence summary:
+> We use deterministic search/DP to solve **small instances optimally**, then train a neural network to learn a **scalable near-optimal policy**, and finally use RL to directly align the policy with the original objective.
 
 ---
 
-## 2. 数据增强：从真实分布生成可控的小规模实例
+## 1. Real-data collection: building a WNBA player feature pool
 
-传统精确算法只能在小规模下稳定运行；但纯合成数据容易与真实分布脱节。因此我们采用“真实+合成混合”的数据增强方案。
+### 1.1 Data source and goal
 
-### 2.1 为什么要增强
+- Source: Basketball-Reference WNBA season “advanced” pages (one page per season).
+- Goal: provide a realistic statistical feature distribution for the candidate player pool (ability vectors, playing time/availability, etc.).
 
-- 真实赛季的球队决策样本太少（且不可直接观测到最优策略序列）。
-- 纯合成会导致能力/薪资的边际分布不真实，影响模型泛化。
-- 我们需要大量可标注的训练对：`instance → DP-opt solution`。
+### 1.2 Processing pipeline
 
-### 2.2 增强策略（核心思想）
-
-给定一个“球员池”，为每条样本随机生成一个多赛季实例：
-
-- 采样候选球员集合（例如 `n_players=15`）
-- 为每个赛季生成球员能力矩阵与薪资（可做轻微扰动/跨年漂移）
-- 生成环境参数（工资帽、赛季场次、对手强度等）
-- 固定规模参数（如 `T=3, K=6, L=11, U=12`）确保可精确求解
-
-并支持混合比例（real-frac）：
-
-- 一部分样本尽量贴近真实 pool 的原始分布
-- 另一部分引入扰动与组合，增加覆盖面与鲁棒性
+1) Download HTML (one page per season)
+2) Parse table fields → unify column names / handle missing values
+3) Produce a season-level “player pool” (pool), which will be used for sampling instances
 
 ---
 
-## 3. 确定性搜索 + 动态规划：为小规模实例生成全局最优解
+## 2. Data augmentation: generate controllable small instances from real distributions
 
-### 3.1 动作空间压缩：枚举可行 roster mask
+Exact algorithms are reliable only at small scale, but purely synthetic data can drift away from real distributions. We therefore use a **real + synthetic mix** augmentation scheme.
 
-直接把阵容选择视为 $2^{n}$ 的子集选择不可行。
+### 2.1 Why augmentation is needed
 
-我们做法是：
+- Real season decision samples are too few (and we cannot directly observe optimal strategy sequences).
+- Purely synthetic data often has unrealistic marginal distributions (abilities/salaries), harming generalization.
+- We need many labeled training pairs: `instance → DP-opt solution`.
 
-- 先枚举所有满足人数约束的 roster（bitmask）
-- 再过滤工资帽约束，得到每赛季的“可行动作集合”
+### 2.2 Augmentation strategy (core idea)
 
-这样每个时间步的动作从指数空间变为“有限离散集合”（例如 `n=15, L=11, U=12` 时约 1820 个）。
+Given a player pool, we generate a multi-season instance by sampling:
 
-### 3.2 DP 结构
+- Sample a candidate set (e.g., `n_players=15`)
+- For each season, generate an ability matrix and salaries (with optional small perturbations / year-to-year drift)
+- Sample environment parameters (salary cap, number of games, opponent strength, etc.)
+- Fix small-scale parameters (e.g., `T=3, K=6, L=11, U=12`) so the instance remains exactly solvable
 
-在多赛季（短规划期）下，状态可以用“上一赛季阵容 + 当季环境/球员特征”刻画。
+We also support a mixing ratio (`real-frac`):
 
-DP 的典型形式是：
+- Part of the samples closely follow the original pool distribution
+- The rest inject perturbations and recombinations to increase coverage and robustness
+
+---
+
+## 3. Deterministic search + dynamic programming: generate global optima for small instances
+
+### 3.1 Action-space compression: enumerate feasible roster masks
+
+Treating roster selection as subset selection over $2^n$ is infeasible.
+
+Our approach:
+
+- Enumerate all rosters that satisfy the size constraint (bitmasks)
+- Filter by salary-cap constraint to obtain the feasible action set per season
+
+This turns the per-step action space from exponential to a finite discrete set (e.g., about 1820 masks when `n=15, L=11, U=12`).
+
+### 3.2 DP structure
+
+For a short planning horizon (few seasons), we can define state using “previous-season roster + current season environment/player features”.
+
+The typical DP form is:
 
 $$
 V_t(s_t) = \max_{a_t \in \mathcal{A}(s_t)} \left[ r(s_t,a_t) + \gamma V_{t+1}(s_{t+1}) \right]
 $$
 
-其中转移包含：
+The transition includes:
 
-- 新阵容对下一赛季的“延续/流失（churn）”影响
-- 目标函数中胜场与利润项的权衡（见 [model_general.md](model_general.md)）
+- How the new roster affects “continuity/churn” into the next season
+- The trade-off between wins and profit in the objective (see [model_general.md](model_general.md))
 
-最终得到：
+Outputs:
 
-- 每条实例的最优 objective $J^*(s)$
-- 每个赛季的最优动作序列（最优 roster mask 序列）
+- Per instance: optimal objective $J^*(s)$
+- Per season: optimal action sequence (optimal roster mask sequence)
 
-并导出为监督训练数据对。
-
----
-
-## 4. 基于小规模最优解训练策略网络（BC：模仿学习）
-
-### 4.1 监督信号是什么
-
-对每条训练样本，我们有 DP 输出的最优序列：
-
-- 输入：`instance`（多赛季球员特征 + 环境 + 初始阵容）
-- 标签：`solution.masks[t]`（每赛季最优动作 mask）
-
-### 4.2 训练目标
-
-把“动作选择”变成一个分类问题：
-
-- 模型输出对所有可行 mask 的 logits
-- 用交叉熵让最优 mask 的概率最大
-
-BC 的作用：
-
-- 快速学到“像 DP 一样”的初始策略
-- 为后续 RL 提供稳定的初始化（避免从随机策略开始探索）
+These are exported as supervised training pairs.
 
 ---
 
-## 5. 强化学习微调：直接优化原始 objective（Actor-Critic + AWBC）
+## 4. Train a policy network on small-scale optimal labels (BC / imitation learning)
 
-BC 只能模仿特定数据集上的 DP 行为；在分布偏移、以及“模型表达能力/解码策略”变化时，纯模仿会卡在一个 plateau。
+### 4.1 What the supervision signal is
 
-因此我们用 RL 在原始 reward 上微调。
+For each training sample, DP provides the optimal sequence:
 
-### 5.1 环境如何给出 reward
+- Input: `instance` (multi-season player features + environment + initial roster)
+- Label: `solution.masks[t]` (the optimal mask per season)
 
-每个 episode 对应一条多赛季实例：
+### 4.2 Training objective
 
-- 状态 $s_t$：由当季环境、球员特征、上季阵容等组成
-- 动作 $a_t$：选择一个可行 roster mask
-- reward $r_t$：由题目的 objective 分解得到（胜场/利润/流失惩罚等）
+We cast action selection as classification:
 
-### 5.2 Actor-Critic 的梯度从哪里来
+- The model outputs logits over feasible masks
+- Cross-entropy encourages high probability on the optimal mask
 
-- Actor 学习提升“高回报动作”的概率（policy gradient）
-- Critic 学习估计 $V(s_t)$ 作为 baseline，降低方差
-- 最终通过 $\nabla_\theta \log \pi_\theta(a_t|s_t)$ 把 reward 信号传播回网络参数
+BC serves as:
 
-### 5.3 为什么还要 AWBC
-
-RL 会引入探索噪声，容易偏离原先“可行且合理”的 DP 策略。
-
-AWBC（优势加权模仿）的直觉：
-
-- 当 rollout 的优势 $A_t$ 为正时，说明这条行为比当前价值估计更好
-- 这时既增强该行为的概率，也保持对老师动作的偏好（但强度随优势调整）
+- A fast way to learn a strong initial policy “that behaves like DP”
+- A stable initialization for RL (avoids exploring from a random policy)
 
 ---
 
-## 6. 最终交付物（可复现结果）
+## 5. Reinforcement-learning fine-tuning: directly optimize the original objective
 
-本仓库的工程侧会产出训练权重、曲线、评估缓存等文件，这些属于“可复现实验产物”，通常不会随论文/报告一同提交（已加入 `.gitignore`，你可以本地留作备份）。
+BC imitates DP behavior on the training distribution; under distribution shift and when the decoder/model capacity changes, pure imitation can plateau. We therefore fine-tune with RL on the original reward.
 
-原则上你只需要记住：
+### 5.1 How the environment provides reward
 
-- 训练产物输出目录由训练命令的 `--out-dir` 决定
-- 评估产物输出目录由评估命令的 `--out-dir` 决定
-- 如需把图片放到报告里引用，使用导出命令把图片复制到一个稳定的文档目录（见 README 与 plots.md）
+Each episode corresponds to one multi-season instance:
 
-更多细节：
+- State $s_t$: current-season environment + player features + previous roster
+- Action $a_t$: choose one feasible roster mask
+- Reward $r_t$: decomposed from the problem objective (wins/profit/churn penalty, etc.)
 
-- 训练与 RL 细节、网络可解释性说明：见 [train_strategy.md](train_strategy.md)
-- 指标曲线图如何阅读：见 [plots.md](plots.md)
+### 5.2 Where Actor–Critic gradients come from
+
+- The Actor increases the probability of high-return actions (policy gradient)
+- The Critic estimates $V(s_t)$ as a baseline to reduce variance
+- The reward signal propagates back via $\nabla_\theta \log \pi_\theta(a_t\mid s_t)$
+
+### 5.3 Why AWBC is also used
+
+RL exploration introduces noise and can drift away from the “feasible and sensible” DP behavior.
+
+AWBC (advantage-weighted behavior cloning) intuition:
+
+- If rollout advantage $A_t$ is positive, the behavior is better than the current value estimate
+- We then increase the probability of that behavior, while still keeping a preference for teacher-like actions (with strength scaled by advantage)
+
+---
+
+## 6. Final deliverables (reproducible artifacts)
+
+This repository produces model checkpoints, learning curves, evaluation caches, etc. These are “reproducible experiment artifacts” and are typically not submitted with the final write-up (they are already in `.gitignore`; you can keep them locally).
+
+Key points:
+
+- Training outputs are controlled by the training command’s `--out-dir`
+- Evaluation outputs are controlled by the evaluation command’s `--out-dir`
+- If you need figures for the report, export/copy them into a stable docs directory (see README and [plots.md](plots.md))
+
+More details:
+
+- Training/RL details and interpretability notes: [train_strategy.md](train_strategy.md)
+- How to read the metric plots: [plots.md](plots.md)
