@@ -1,0 +1,114 @@
+\begin{thebibliography}{10}
+
+\bibitem{fieldhouse2025_breakout}
+Scott Agness.
+\newblock The wnba's breakout year: A 2024 season of records, revenue, and the
+  caitlin clark effect.
+\newblock {\em Fieldhouse Files}, 2025.
+\newblock Highlights that the 2024 WNBA season set attendance and viewership
+  records, with total attendance up 48\% and average attendance at 9{,}807 fans
+  per game.
+
+\bibitem{nbc2025_pay_us}
+Rohan Nadkarni.
+\newblock Why wnba players are telling the league: ‘pay us what you owe
+  us’.
+\newblock {\em NBC Sports Bay Area}, 2025.
+\newblock Reports that WNBA revenue increased from \$102\,million to
+  \$119\,million between 2019 and 2023 and that players receive only 9.3\% of
+  league revenue; highlights expansion to 18 teams and new media rights deal.
+
+\bibitem{bonema2025_revenue_sharing}
+Mary Bonema.
+\newblock Rethinking revenue sharing in the wnba.
+\newblock {\em Brooklyn Sports \& Entertainment Law Blog}, 2025.
+\newblock Discusses that WNBA viewership is at an all-time high yet player
+  salaries represent the smallest share of league revenue among U.S. sports;
+  cites that players receive about 9.3\% of revenue and describes CBA
+  negotiations amid a new \$2.2\,billion media rights deal.
+
+\bibitem{voepel2025_expansion}
+Michael Voepel, Kevin Pelton, and Kendra Andrews.
+\newblock Wnba team expansion faq: Cleveland, detroit, philadelphia.
+\newblock {\em ESPN}, 2025.
+\newblock Reports that the WNBA will expand to 18 teams by 2030 and discusses
+  the implications for the CBA and player revenue share.
+
+\bibitem{perez2019_players_selection}
+Miguel~{\'A}ngel P{\'e}rez-Toledano, Francisco~J. Rodriguez, Javier
+  Garc{\'i}a-Rubio, and Sergio~Jos{\'e} Iba{\~n}ez.
+\newblock Players’ selection for basketball teams, through performance index
+  rating, using multiobjective evolutionary algorithms.
+\newblock {\em PLOS ONE}, 14(9):e0221258, 2019.
+\newblock Discusses multiobjective team selection; notes that exact
+  determination of the Pareto front is infeasible for large instances.
+
+\bibitem{copland2025_kaggle_stats}
+Nicholas Copland.
+\newblock Wnba player and team stats 2003–2025 (120k rows), 2025.
+\newblock Dataset with over 120{,}000 rows of WNBA player and team statistics
+  from 2003 through 2025; includes box scores compiled from the
+  wehoop.sportsdataverse.org library. Accessed 2~Feb~2026.
+
+\bibitem{radke2023_multiagent}
+David Radke and Alexi Orchard.
+\newblock Presenting multiagent challenges in team sports analytics.
+\newblock In {\em Proceedings of the 22nd International Conference on
+  Autonomous Agents and Multiagent Systems (AAMAS)}, pages 1--5, 2023.
+\newblock Argues that invasion games like basketball provide rich environments
+  for multi-agent systems research; emphasises challenges of coordination
+  across short-term tactics and long-term management.
+
+\bibitem{bhattacharjee2024_fantasy_rl}
+Shamik Bhattacharjee, Kamlesh Marathe, Nilesh Patil, and Hitesh Kapoor.
+\newblock Optimizing fantasy sports team selection with deep reinforcement
+  learning.
+\newblock {\em Proceedings of the CODS-COMAD Conference}, 2024.
+\newblock Frames team creation as a sequential decision problem and shows that
+  reinforcement learning algorithms can construct competitive fantasy teams by
+  maximising expected performance.
+
+\bibitem{herhoopstats_roster}
+{Her Hoop Stats}.
+\newblock {WNBA CBA and Salary Cap Explained}, 2025.
+\newblock Section on roster size states teams must carry 11--12 players;
+  retrieved 2~Feb~2026.
+
+\bibitem{herhoopstats_salary}
+{Her Hoop Stats}.
+\newblock {WNBA CBA and Salary Cap Explained}, 2025.
+\newblock Salary cap table listing each season's cap and minimum; retrieved
+  2~Feb~2026.
+
+\bibitem{gfg_branch_bound}
+{GeeksforGeeks}.
+\newblock Introduction to branch and bound - data structures and algorithms
+  tutorial, 2025.
+\newblock Last accessed 2~Feb~2026.
+
+\bibitem{gfg_lstm}
+{GeeksforGeeks}.
+\newblock What is lstm - long short term memory?, 2025.
+\newblock Introduces long short–term memory networks, describing their memory
+  cell and three gating mechanisms (input, forget and output gates) and
+  explaining how these gates regulate information flow and mitigate vanishing
+  gradients.
+
+\bibitem{gfg_transformer}
+{GeeksforGeeks}.
+\newblock Transformers in machine learning, 2025.
+\newblock Provides an overview of the Transformer architecture, covering
+  self–attention, multi–head attention, positional encodings,
+  feed–forward layers and the benefits over recurrent models.
+
+\bibitem{lim2020tft}
+Bryan Lim, Sercan~O. Arik, Nicolas Loeff, and Tomas Pfister.
+\newblock Temporal fusion transformers for interpretable multi-horizon time
+  series forecasting, 2020.
+
+\bibitem{darvariu2024graph_rl}
+Victor-Alexandru Darvariu, Stephen Hailes, and Mirco Musolesi.
+\newblock Graph reinforcement learning for combinatorial optimization: A survey
+  and unifying perspective, 2024.
+
+\end{thebibliography}

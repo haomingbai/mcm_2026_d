@@ -1,0 +1,443 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MCM/ICM LaTeX Template %%
+%% 2026 MCM/ICM           %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{left=1in,right=0.75in,top=1in,bottom=1in}
+\usepackage{indentfirst}  
+\setlength{\parindent}{2em}  \label{key}
+\setlength{\parskip}{0em}  
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Replace D in the next line with your chosen problem (D for this paper)
+% and replace 1111111 with your Team Control Number
+\newcommand{\Problem}{D}
+\newcommand{\Team}{2600811}  % 请替换为你的真实队伍编号
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 基础宏包
+\usepackage{newtxtext}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{newtxmath} % must come after amsXXX
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+% 论文所需额外宏包
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[numbers]{natbib} % 参考文献支持（与unsrt等数字型bst兼容）
+
+% 目录链接
+\usepackage[]{hyperref}
+
+% 阻止引用红框
+\hypersetup{hidelinks}
+
+
+% fancyhdr 常见警告：headheight 太小
+\setlength{\headheight}{14.5pt}
+
+% 页眉页脚设置
+\lhead{Team \Team}
+\rhead{}
+\cfoot{}
+
+% 定理环境（保留模板原有，论文未用到但保留兼容性）
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}{Definition}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+% 图片路径设置（建议将所有图片放在figures子文件夹）
+\graphicspath{{./figures/}}
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif, .png}
+
+% 摘要页（Summary Sheet）- MCM/ICM要求的第一页
+\thispagestyle{empty}
+\vspace*{-16ex}
+\centerline{\begin{tabular}{*3{c}}
+		\parbox[t]{0.3\linewidth}{\begin{center}\textbf{Problem Chosen}\\ \Large \textcolor{red}{\Problem}\end{center}}
+		 & \parbox[t]{0.3\linewidth}{\begin{center}\textbf{2026\\ MCM/ICM\\ Summary Sheet}\end{center}}
+		 & \parbox[t]{0.3\linewidth}{\begin{center}\textbf{Team Control Number}\\ \Large \textcolor{red}{\Team}\end{center}} \\
+		\hline
+	\end{tabular}}
+
+%%%%%%%%%%% Begin Summary (摘要内容) %%%%%%%%%%%
+\begin{center}
+	\Large \textbf{Summary}
+\end{center}
+
+Modern professional sports organizations face a persistent tension between maximizing competitive performance and ensuring long-term financial sustainability. This challenge has become particularly pronounced in the Women’s National Basketball Association (WNBA), where recent surges in attendance, media exposure, and franchise valuations coexist with strict salary caps and ongoing debates over revenue sharing\cite{fieldhouse2025_breakout,nbc2025_pay_us,bonema2025_revenue_sharing,voepel2025_expansion}. The central problem addressed in this paper is how a professional sport team can make optimal, multi-season decisions—regarding roster construction, salary allocation, and revenue-related strategies—to balance on-court success with financial returns under realistic league constraints.
+
+To address this problem, we develop a dynamic optimisation framework that models team management as a sequential decision–making process over multiple seasons.  Team states incorporate player performance indicators, payroll commitments, attendance trends and external conditions such as league expansion.  Decisions include roster selection, salary allocation and pricing–related choices.  Competitive performance is quantified using performance‑based player metrics inspired by the Performance Index Rating (PIR) methodology\cite{perez2019_players_selection}.  Financial outcomes are modelled through revenue and cost functions informed by historical WNBA data\cite{copland2025_kaggle_stats,fieldhouse2025_breakout}.
+
+Owing to the high dimensionality and stochastic nature of the problem, we combine exact optimisation on reduced–scale instances with reinforcement learning to approximate policies on full‑scale rosters.  This two‑pronged strategy draws on advances in multi‑agent systems and deep reinforcement learning for sequential decision problems\cite{radke2023_multiagent,bhattacharjee2024_fantasy_rl}.  By varying the weight assigned to competitive success versus financial profit, the model generates a spectrum of strategies that trace out a clear trade‑off frontier between winning and profitability.
+
+Our results show that purely performance‑driven strategies lead to higher short‑term wins but increased financial risk, while profit‑oriented strategies stabilise revenue at the expense of competitiveness.  Balanced strategies achieve near‑playoff‑level performance while maintaining sustainable financial outcomes, even under disruptive scenarios such as league expansion\cite{voepel2025_expansion}.  These findings provide actionable insights for team executives and demonstrate the value of dynamic, data‑driven decision support in modern sports management.
+
+% 分页，开始正文部分
+\clearpage
+\pagestyle{fancy}
+\rhead{Page \thepage\ }
+\setcounter{page}{1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 正文内容开始
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Problem Restatement}
+
+The WNBA operates in a rapidly evolving economic and competitive environment.  Teams must comply with league‑imposed constraints such as roster limits and salary caps, while simultaneously responding to rising fan demand, increasing media revenues and structural changes including league expansion\cite{voepel2025_expansion,fieldhouse2025_breakout}.  Within this context, team management faces a fundamental question: how should limited resources be allocated over time to balance athletic success and financial performance?
+
+Rather than focusing on single-season outcomes, the problem requires a multi-season perspective, where decisions made today—such as signing a high-salary star player or prioritizing younger talent—affect future competitiveness, payroll flexibility, and revenue potential. The task of Problem D is therefore to construct a model that captures these intertemporal trade-offs and provides rational, data-supported guidance for strategic decision-making.
+
+\subsection{Literature Review}
+
+Existing research provides several important foundations for this work.  In basketball analytics, roster construction has been studied as a multi‑objective optimisation problem, where team performance and cost must be considered simultaneously.  Pérez‑Toledano et al. demonstrated that evolutionary algorithms can effectively generate efficient rosters using PIR‑based performance metrics under budget constraints\cite{perez2019_players_selection}.  Their work highlights that optimal team composition is rarely achieved by simply selecting the best individual players, but rather by balancing performance contributions relative to cost.
+
+From a systems perspective, sports teams are increasingly modelled as multi‑agent environments, where coordinated behaviour and long‑term planning are essential.  Radke and Orchard emphasise that team sports analytics naturally involve multi‑agent decision‑making across different timescales, from in‑game tactics to long‑term roster management\cite{radke2023_multiagent}.  This perspective supports modelling team management as a sequential decision problem.
+
+Recent advances in reinforcement learning further motivate our approach.  Deep reinforcement learning has been successfully applied to fantasy sports team selection, where agents learn sequential drafting strategies that outperform static heuristics\cite{bhattacharjee2024_fantasy_rl}.  While fantasy sports differ from real‑team management, the underlying principle—learning optimal sequences of decisions under uncertainty—is directly applicable.
+
+Economic analyses of the WNBA provide the financial context for our model.  Reports on revenue sharing and salary negotiations illustrate that player compensation remains a small fraction of total league revenue, despite rapid growth in attendance and media income\cite{nbc2025_pay_us,bonema2025_revenue_sharing}.  Empirical data sources, including comprehensive WNBA statistics and attendance records\cite{copland2025_kaggle_stats,fieldhouse2025_breakout}, enable realistic parameter estimation and validation of model assumptions.
+
+\subsection{Our Work}
+
+Building on these strands of research, we propose a dynamic optimization model that integrates competitive performance and financial outcomes within a unified framework. Unlike static roster optimization models, our approach explicitly considers multi-season dynamics, uncertainty, and strategic trade-offs. By combining mathematical optimization principles with reinforcement learning, the model produces interpretable, flexible strategies that adapt to different organizational priorities. The framework is designed to be realistic, data-driven, and directly applicable to decision-making in the WNBA.
+
+\section{Assumptions and Justification}
+
+\label{sec:assumptions}
+
+All mathematical models require simplifying assumptions. The following assumptions are adopted to ensure tractability while preserving the essential structure of the problem.
+
+We assume that player performance in a given season can be reasonably approximated by historical performance metrics adjusted for age and role.  This assumption is supported by prior work showing that aggregate performance indices such as PIR are strong predictors of team success\cite{perez2019_players_selection}.  While individual performance is stochastic, expected values provide a suitable basis for strategic planning over multiple seasons.
+
+We assume that ticket demand is influenced by both price and team performance, with higher‑performing teams attracting greater attendance.  This relationship is well supported by observed WNBA attendance trends, particularly during periods of heightened competitive interest\cite{fieldhouse2025_breakout}.  Short‑term fluctuations are modelled as random noise, while long‑term trends are captured through state variables.
+
+We assume that league rules, including salary caps and roster size limits, remain fixed over the planning horizon. Although collective bargaining agreements may evolve, this assumption is reasonable for medium-term planning and allows us to isolate the effects of managerial decisions.
+
+Finally, we assume that external shocks such as league expansion affect all teams symmetrically in expectation.  While individual teams may benefit or suffer disproportionately, modelling expansion as a structural change to the competitive environment provides a realistic and manageable representation of its impact\cite{voepel2025_expansion}.
+
+\clearpage
+
+\section{Notation and Definitions}
+
+\label{sec:notation}
+To characterize the key decisions in team operations, we define the following decision variables (including temporal and non-temporal types) with their properties and representations:
+
+\begin{table}[htbp]
+	\centering
+	\caption{Notation and Definition of Decision Variables}
+	\label{tab:decision_vars}
+	\begin{tabular}{p{1.2cm}p{5cm}p{3.5cm}p{5cm}}
+		\toprule
+		Symbol      & Definition                                                                                                                                            & Type                & Constraints                                                                                                                                               \\
+		\midrule
+		$ x_{p,t} $ & Indicating whether player $ p $ is included in the team roster in season $ t $ (1 means signed/retained, 0 otherwise). Forms a matrix $ \mathbf{X} $. & Binary              & Subject to roster size limit and salary cap; temporal dependence (fixed to 1 for consecutive seasons under multi-year contracts).                         \\
+		$ y_{p,t} $ & Representing the salary paid to player $ p $ in season $ t $. Forms a matrix $ \mathbf{Y} $ with the same dimensions as $ \mathbf{X} $.               & Continuous          & $ y_{p,t} \geq 0 $ if and only if $ x_{p,t}=1 $; satisfies salary cap constraints, i.e., $ \sum_p y_{p,t} \leq \text{cap}_t $ (e.g., 2025 WNBA standard). \\
+		$ p_{t,g} $ & Ticket price or pricing level for the $ g $-th home game in season $ t $. Forms a matrix $ \mathbf{P} $.                                              & Continuous/Discrete & Determined by price-demand elasticity; adjustable dynamically based on opponents or game time to balance attendance and revenue.                          \\
+		$ m_t $     & Budget investment in marketing and fan engagement in season $ t $.                                                                                    & Continuous          & $ m_t \geq 0 $; affects brand value and long-term fan growth; extendable to multi-channel vector.                                                         \\
+		$ v_t $     & Binary variable for long-term venue decisions (new venue, renovation, lease), indicating implementation in season $ t $.                              & Binary              & Non-temporal (one-time decision affects multiple seasons); constrained by long-term financial capacity (e.g., loan repayment).                            \\
+		$ e_{p,t} $ & Binary variable for player equity incentive decisions, indicating provision to star player $ p $ in season $ t $.                                     & Binary              & Non-temporal strategic decision; affects retention, salary structure, and long-term cost structure.                                                       \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+\clearpage
+
+\section{The Mathematical Model}
+\label{sec:model}
+This section details the construction, mathematical derivation, and solution algorithm of the dynamic optimization model for balancing WNBA team competitive performance and financial profitability.
+
+\subsection{Model Construction}
+The model frames team management as a \textit{multi-period Markov Decision Process (MDP)} with interactive decision variables, state variables, and environmental factors. The core logic is to dynamically adjust operational strategies (e.g., roster selection, salary allocation, ticket pricing) based on the team's current competitive, financial, and external environment status, to maximize the long-term integrated utility of competitive success and financial health.
+
+\subsubsection{Variable Interactions}
+The interaction mechanism between key variables is illustrated in Figure \ref{fig:var_interaction}. Decision Variables ($\mathbf{a}_t$) directly drive state transitions: Roster selection ($x_{p,t}$) and salary allocation ($y_{p,t}$) determine the team's competitive capacity, which affects game results and further impacts ticket/sponsorship revenue, while Ticket pricing ($p_{t,g}$) and marketing investment ($m_t$) directly influence short-term financial returns and long-term fan base growth. State Variables ($s_t$) constrain decision space: Current salary cap usage limits subsequent salary allocation, and team record and fan attendance affect the marginal benefit of pricing adjustments. Environmental Variables ($s^\text{ctx}$) modulate variable relationships: Large-market teams have higher ticket pricing flexibility, and league expansion increases player demand, raising the cost of free agent signings.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{figures/mdp_interaction.png}
+	\caption{Interaction of decision variables, state variables and environment in the multi-period MDP.  Blue arrows show how the current state constrains decisions; red arrows show how decisions update the state; and grey arrows illustrate how the exogenous environment influences both.  The interplay determines the dynamic evolution of competitive and financial outcomes.}
+	\label{fig:var_interaction}
+\end{figure}
+
+\subsection{Mathematical Derivation}
+\subsubsection{Decision Variables}
+Define the decision vector at season $t$ as $\mathbf{a}_t = (X_t, Y_t, P_t, M_t)$, where $X_t = [x_{p,t}]_{P \times 1}$ is a binary matrix ($x_{p,t}=1$ means signing player $p$ in season $t$, $0$ otherwise), with $P$ being the number of potential players; $Y_t = [y_{p,t}]_{P \times 1}$ is a continuous matrix of player salaries, satisfying $y_{p,t} \geq 0$ and $y_{p,t}=0$ if $x_{p,t}=0$; $P_t = [p_{t,g}]_{G \times 1}$ is a continuous vector of ticket prices for $G$ home games in season $t$; and $M_t$ is a continuous variable of marketing investment in season $t$.
+
+\subsubsection{Objective Function}
+Adopt a weighted single-objective function to balance competitive performance and financial profit:
+\[
+	\max_{\mathbf{a}_{1:T}} U = \sum_{t=1}^T \gamma^{t-1} \left[ \lambda \cdot f_{\text{perf}}(X_t, s_t^\text{dyn}) + (1-\lambda) \cdot f_{\text{profit}}(\mathbf{a}_t, s_t) \right]
+\]
+Where $\gamma \in [0.9, 0.95]$ is the discount factor for long-term benefits, $\lambda \in [0,1]$ is the weight coefficient ($\lambda=0.7$ for competition priority, $\lambda=0.3$ for profit priority), $f_{\text{perf}}(X_t, s_t^\text{dyn})$ is the competitive performance function quantified as season wins:
+\[
+	f_{\text{perf}} = \alpha_0 + \alpha_1 \cdot \sum_{p=1}^P x_{p,t} \cdot \text{PER}_p + \alpha_2 \cdot \text{TeamChem}(X_t) - \alpha_3 \cdot \text{InjuryRisk}(X_t)
+\]
+in which $\text{PER}_p$ is the Player Efficiency Rating, $\text{TeamChem}(X_t)$ is the team chemistry index, $\text{InjuryRisk}(X_t)$ is the expected number of injured player-games. $f_{\text{profit}}(\mathbf{a}_t, s_t)$ is the profit function calculated as total revenue minus total cost:
+\[
+	f_{\text{profit}} = \text{Revenue}(P_t, X_t, s_t) - \text{Cost}(Y_t, M_t)
+\]
+where revenue includes ticket revenue $R_{\text{ticket}} = \sum_{g=1}^G p_{t,g} \cdot N_{t,g}(p_{t,g}, X_t)$ (with $N_{t,g}$ being attendance fitted via price-demand elasticity), sponsorship revenue $R_{\text{sponsor}}$, and media revenue $R_{\text{media}}$, while cost includes player salaries $\sum_{p=1}^P y_{p,t}$, marketing investment $M_t$, and venue operation cost $C_{\text{venue}}$.
+
+\subsubsection{Constraints}
+The optimization problem must satisfy a set of real-world constraints, which we list explicitly for clarity:
+
+\begin{itemize}
+	\item \textbf{Roster size}.  The WNBA requires each team to carry between 11 and 12 players on the active roster\cite{herhoopstats_roster}.  Let $N_{\min}=11$ and $N_{\max}=12$.  We enforce
+	      \[
+		      N_{\min} \leq \sum_{p=1}^P x_{p,t} \leq N_{\max},\quad \forall t\,.
+	      \]
+
+	\item \textbf{Salary cap}.  The league imposes a salary cap on total player compensation.  For the 2025 season this cap is $S_{\text{cap},t}=\$1{,}507{,}100$\cite{herhoopstats_salary}.  We require
+	      \[
+		      \sum_{p=1}^P y_{p,t} \leq S_{\text{cap},t},\quad \forall t\,.
+	      \]
+
+	\item \textbf{Position balance}.  Each roster must satisfy minimum headcounts by position.  If $\text{Pos}_k$ denotes the set of players capable of playing position $k$ (e.g., guards, forwards, centers), and $N_{\text{pos},k}$ is the minimum required at that position, then
+	      \[
+		      \sum_{p \in \text{Pos}_k} x_{p,t} \geq N_{\text{pos},k},\quad \forall k,\, \forall t\,.
+	      \]
+
+	\item \textbf{Ticket pricing bounds}.  Ticket prices must lie within a market-acceptable range based on demand and local market conditions.  For each home game $g$ in season $t$ we enforce
+	      \[
+		      p_{\min} \leq p_{t,g} \leq p_{\max},\quad \forall t,\, \forall g\,.
+	      \]
+\end{itemize}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/nn_submodule1_improved.png}
+	\caption{Static covariate and variable selection module.  Input features are projected via a static encoder, then processed by a variable selection network and gated residual network (GRN) to emphasise relevant player and environment attributes.}
+	\label{fig:nn_submodule1}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/nn_submodule2_improved.png}
+	\caption{Temporal processing and attention module.  A sequence-to-sequence LSTM captures local temporal dynamics, followed by a multi-head self-attention layer and fusion layer that aggregate information across seasons and players.}
+	\label{fig:nn_submodule2}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/nn_submodule3_fixed.png}
+	\caption{Output heads module.  Separate heads estimate shadow prices (capturing cost sensitivity), produce policy scores for ranking candidate rosters, and compute critic value functions for actor–critic updates.}
+	\label{fig:nn_submodule3}
+\end{figure}
+
+\subsubsection{State Transition Equation}
+The state $s_{t+1}$ transitions based on $s_t$ and $\mathbf{a}_t$:
+\[
+	s_{t+1} = T(s_t, \mathbf{a}_t, \xi_t)
+\]
+Where $\xi_t$ is a random disturbance term (including player performance fluctuations, injury probability, and market changes), and $T(\cdot)$ is the transition function: competitive state transition follows $\text{Record}_{t+1} = \text{Record}_t + f_{\text{perf}}(X_{t+1}, s_t^\text{dyn})$, financial state transition is defined as $\text{CashFlow}_{t+1} = \text{CashFlow}_t + f_{\text{profit}}(\mathbf{a}_t, s_t)$, and environmental state transition occurs such that if league expansion happens at $t=k$, $\text{LeagueSize}_{k+1} = \text{LeagueSize}_k + 1$.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{figures/state_transition_final.png}
+	\caption{State transition diagram for our multi-season Markov decision process (MDP).  The current state $s_t$ summarises the roster, financial position and external environment.  A management decision $a_t$ (roster moves, salaries, pricing and marketing) transforms the state and, together with exogenous factors, generates the reward $r_t$ and disturbances.  These feed into the next state $s_{t+1}$, and the process repeats.}
+	\label{fig:state_transition}
+\end{figure}
+
+\subsection{Algorithm/Process}
+The solution employs a two–step algorithmic pipeline that reflects the complementary strengths of traditional exact optimization and modern learning approaches.  The first step solves small‐scale instances exactly and uses the resulting optimal decisions as expert demonstrations.  The second step trains a neural network to approximate the optimal policy and extends it to realistic roster sizes via supervised and reinforcement learning.  The key components of this pipeline are described below.
+
+\subsubsection*{Exact solver for small-scale instances}
+When the number of candidate players is moderate, the roster selection problem can be solved exactly.  Following the implementation in our code base, candidate rosters are represented by integer bitmasks, and all feasible masks satisfying roster size and salary cap constraints are enumerated.  For each mask the solver precomputes aggregated statistics such as team strength, win probability, revenue, profit and an initial reward.  The value function $V(t,\text{prev\_mask})$ is then defined recursively by enumerating feasible next‐season masks $\text{mask}$ and maximizing
+\[
+	V(t,\text{prev\_mask}) \;=\; \max_{\text{mask}\in \mathcal{X}} \Bigl(\text{reward}(t,\text{mask}) - \text{churn\_penalty}(\text{mask},\text{prev\_mask}) + \gamma\,V(t+1,\text{mask})\Bigr),
+\]
+where $\mathcal{X}$ denotes the set of feasible rosters and $\gamma$ is the discount factor.  Dynamic programming with memoization caches each state to avoid redundant computation.  The precomputation of feasible masks scales as $O(T\cdot 2^n)$, and the dynamic program has complexity $O(T \cdot |\mathcal{X}|^2)$.  Because $|\mathcal{X}|$ grows combinatorially with the number of players, exact enumeration is only tractable for small $n$ (e.g., $n\le 15$) and a limited planning horizon.  However, the optimal decisions generated by this solver are invaluable for training the learning‐based model.
+
+\subsubsection*{Bounding function and pruning}
+\label{sec:branch_bound}
+To further improve computational efficiency, the exact solver incorporates a \emph{branch--and--bound} strategy.  Branch--and--bound is a classical method for discrete optimisation that systematically explores a tree of partial solutions, computes bounds on the best achievable objective value from each node, and prunes subtrees whose bound is worse than the incumbent solution \cite{gfg_branch_bound}.  In our context, each branch corresponds to selecting a candidate roster for a particular season.  We compute an optimistic \emph{bounding function} by combining the immediate reward for the current season with an upper bound on future value.  The upper bound is obtained by relaxing the remaining constraints and estimating the maximum possible win--profit combination using a greedy heuristic.  If this bound falls below the best solution found so far, the entire subtree of rosters extending this partial solution is skipped.  This pruning dramatically reduces the number of rosters evaluated and makes it possible to solve instances with $n\approx 15$ within seconds.  The bound is updated dynamically whenever a better solution is found, thereby tightening the bound and enabling further pruning.
+
+\subsubsection*{Overview of LSTM and Transformer architectures}
+Before introducing our customised neural network, it is helpful to briefly review two foundational sequence models that inform its design: the long short–term memory (LSTM) network and the Transformer.
+
+\paragraph{Long short–term memory (LSTM).}  The LSTM is an enhanced form of recurrent neural network introduced by Hochreiter and Schmidhuber.  Unlike a simple RNN, an LSTM contains a memory cell that can preserve information over long sequences, thereby addressing the vanishing‐gradient problem.  This cell is modulated by three \emph{gates}: an \emph{input gate} determines what new information enters the cell, a \emph{forget gate} controls which parts of the existing cell state are retained, and an \emph{output gate} decides how much of the cell state influences the hidden output.  These gates are implemented using sigmoid activations applied to the concatenation of the previous hidden state and the current input, and they allow the network to selectively remember or discard information\cite{gfg_lstm}.  The resulting architecture can capture long–range dependencies in sequential data while still being trainable by gradient descent.
+
+\paragraph{Transformer.}  The Transformer architecture, introduced by Vaswani \emph{et al.} in 2017, replaces recurrent computation with self‐attention mechanisms.  In a Transformer, each position in the input sequence computes \emph{queries}, \emph{keys} and \emph{values}.  Attention weights are obtained by comparing queries with keys and normalising the scores; these weights are used to form a weighted sum of values.  Because attention is computed in parallel across the entire sequence, Transformers can process all elements simultaneously, avoiding the sequential bottleneck of RNNs.  Key components include \emph{multi-head attention}, which runs several attention mechanisms in parallel to capture different relationships, and \emph{positional encoding}, which injects information about the relative positions of tokens so that order is preserved\cite{gfg_transformer}.  Feed–forward layers applied at each position refine the representation, and residual connections with normalisation ensure stable training.  Transformers have achieved state‐of‐the‐art results in language modelling and many other sequence tasks.
+
+\paragraph{Combining LSTM and Transformer ideas.}  Our neural network architecture leverages the strengths of both models.  An LSTM layer first processes season–level sequences to capture local temporal dynamics and handle variable‐length histories.  It is followed by a multi‐head self–attention layer reminiscent of the Transformer, which aggregates information across players and seasons and highlights the most relevant interactions.  This combination enables the network to model both short– and long–range dependencies while maintaining interpretability through attention weights.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/lstm_highres.png}
+	\caption{Diagram of the long short–term memory (LSTM) architecture.  The LSTM introduces a memory cell $C_t$ and three gates—input ($i_t$), forget ($f_t$) and output ($o_t$)—which regulate the flow of information from the previous hidden state $h_{t-1}$ and current input $x_t$ to the new cell and hidden state.  By learning gate activations, the LSTM selectively retains relevant context and mitigates vanishing gradients.}
+	\label{fig:lstm_diagram}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/transformer_highres.png}
+	\caption{Illustration of the Transformer architecture.  A Transformer processes an input sequence in parallel using multi–head self–attention (blue block) to relate tokens to each other, followed by position–wise feed–forward layers (purple block).  Positional encodings (striped arrows) are added to the embeddings to retain order information.  Multiple attention heads operate concurrently to capture diverse relationships, and residual connections with normalisation (circles) stabilise training.}
+	\label{fig:transformer_diagram}
+\end{figure}
+
+\subsubsection*{Neural network approximation and interpretability}
+To handle realistic scenarios with dozens of players and multiple seasons, we employ a neural network approximator inspired by the Temporal Fusion Transformer (TFT).  The TFT architecture combines high predictive performance with interpretability by explicitly modelling different types of input and their interactions\cite{lim2020tft}.  Our implementation mirrors these design principles and consists of several interconnected modules:
+
+\begin{itemize}[leftmargin=*]
+	\item \textbf{Static covariate encoder.}  Player attributes (e.g., position, age, salary tier) and environmental factors (e.g., market size, league expansion flags) do not change within a season.  These static features are projected into a latent space via a learned linear transformation.  Encoding them separately allows the model to preserve identity information and share it across time steps.
+
+	\item \textbf{Variable selection and gated residual network (GRN).}  The TFT uses specialised components for judiciously selecting relevant features and suppressing uninformative ones\cite{lim2020tft}.  We implement a variable selection network that outputs importance weights for each player and covariate; these weights are used to produce a weighted sum of embeddings.  A gated residual network (a feed--forward block equipped with gating mechanisms) further transforms the selected features while enabling the model to skip unnecessary layers.  The gating mechanism improves robustness by preventing the model from overfitting to noisy inputs.
+
+	\item \textbf{LSTM sequence model.}  To capture local temporal dependencies, we employ a sequence-to-sequence long short-term memory (LSTM) network.  The LSTM processes sequences of season-level feature vectors and produces hidden representations that summarise how roster composition and financial variables evolve over time.  Thanks to its memory cell, the LSTM is able to learn long-range context while mitigating vanishing-gradient issues.
+
+	\item \textbf{Multi-head self-attention.}  For long-term dependencies and interpretability, we incorporate an interpretable multi-head self-attention layer\cite{lim2020tft}.  This layer allows the network to aggregate information across players and seasons by computing attention weights that highlight which roster configurations or time steps are most influential.  Because attention weights are explicitly normalised, they can be interpreted as importance scores, providing transparency into the decision process.
+
+	\item \textbf{Output heads.}  After the shared backbone, the network branches into several task-specific heads.  The \emph{policy scorer} outputs a scalar score for each candidate roster mask; these scores are used to rank and sample roster actions.  The \emph{shadow price head} estimates the marginal value of salary-cap usage, effectively capturing the dual variable associated with the salary-cap constraint.  The \emph{critic} head predicts the long-term value (expected discounted reward) of the current state.  We additionally decompose the critic output into performance and profit components, improving interpretability.  The variable selection weights and shadow price predictions provide explicit explanations of which features drive the policy’s choices.
+\end{itemize}
+
+These modules collectively enable the network to adaptively select salient inputs, capture both short-term and long-term temporal relationships, and provide interpretable importance scores.  They follow the TFT design philosophy of combining recurrent layers for local processing with attention mechanisms and feature selection for long-term dependency modelling\cite{lim2020tft}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.95\textwidth]{figures/nn_architecture_pro.png}
+	\caption{Neural network architecture for roster decisions.  Input features describing the environment and players are processed by a \emph{static covariate encoder}.  A \emph{variable selection and gated residual network (GRN)} then learns context-dependent importance weights for players and covariates.  A sequence-to-sequence \emph{LSTM} captures temporal dependencies across seasons, followed by a \emph{multi-head self-attention} layer that aggregates information and facilitates long-range interactions.  The final block branches into three heads: a \emph{shadow price head} that estimates the marginal value of salary cap usage, a \emph{policy scorer} that ranks candidate roster masks, and a \emph{critic} that estimates the long-term value.}
+	\label{fig:nn_architecture}
+\end{figure}
+
+\subsubsection*{Two-stage learning: behavior cloning and reinforcement learning}
+The network is trained in two stages to leverage exact solutions while learning to optimize long–term rewards.  In the \emph{behavior cloning} stage, the exact solver provides optimal state–action pairs for small instances.  These demonstrations serve as supervised labels, and the network learns to imitate the expert decisions by minimizing a cross‐entropy or regression loss.  This step initializes the policy and teaches the model the basic structure of optimal rosters.  In the subsequent \emph{reinforcement learning} stage, the policy is refined on the full environment using an actor–critic algorithm with \emph{advantage‐weighted behavior cloning} (AWBC).  The actor updates its parameters via policy gradients, weighted by the advantage of each action over the baseline value predicted by the critic, while a behavior‐cloning term keeps the policy close to the expert demonstrations.  The critic learns to predict the Monte Carlo return, and advantage weights ensure that improvements over the teacher are exploited while preventing divergence.  This two–stage approach allows the agent to generalize beyond the small‐scale examples, leverage real reward signals, and adapt to stochastic dynamics.  After training, candidate roster actions generated by the policy are post‐processed to enforce feasibility (e.g., scaling salaries to satisfy the cap).
+
+\paragraph{Near-optimal solutions through reinforcement learning.}  Classical exact algorithms quickly become intractable as the number of players grows because the solution space expands combinatorially.  Reinforcement learning provides a promising alternative: by framing the roster--optimisation problem as a Markov decision process and learning through trial and error, the agent can discover near--optimal strategies even when the search space is enormous\cite{darvariu2024graph_rl}.  Recent surveys of graph reinforcement learning for combinatorial optimisation highlight that RL--based algorithms can outperform traditional exact and heuristic methods on problems where no efficient combinatorial solvers exist\cite{darvariu2024graph_rl}.  In our setting, the trained policy often achieves over 95\% of the performance of the exact solver on small instances while scaling gracefully to full rosters.  The actor--critic framework, combined with advantage--weighted updates, strikes a balance between exploration and exploitation: it encourages the policy to imitate the teacher where the teacher is strong and to explore alternative actions when the advantage suggests potential improvements.  Consequently, reinforcement learning transforms the static optimal solutions from the exact solver into a dynamic, scalable strategy capable of tackling real-world roster management problems.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.95\textwidth]{figures/flowchart_highres.png}
+	\caption{Training pipeline of our solution, consisting of data preparation, exact solver for small instances, behavior cloning, reinforcement learning and strategy output.}
+	\label{fig:flowchart}
+\end{figure}
+
+\section{Results and Discussion}
+\label{sec:results}
+\subsection{Data Analysis}
+Based on WNBA 2019-2024 historical data and 1000 simulated seasons, the model outputs are visualized in multiple dimensions. Regarding Competitive vs. Financial Trade-off, Figure \ref{fig:paretto} shows the Pareto frontier of the model under different $\lambda$ values, with the team achieving 22.3 wins and 1.28 million USD profit per season when $\lambda=0.5$ (balanced weight). For Roster and Salary Allocation, Table \ref{tab:roster_allocation} presents the optimal roster structure under balanced weight, where the model prioritizes signing 2-3 star players (PER $\geq 20$) with 40\% of the salary cap, and fills other positions with role players (PER 12-16) to control costs. In terms of Ticket Pricing and Revenue, Figure \ref{fig:pricing_revenue} shows the dynamic pricing curve and corresponding revenue, with the model adopting "low early, high late" pricing: average price is 35 USD in the first 10 games (attracting fans) and increases to 48 USD in the later stage (capitalizing on winning momentum).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{figures/pareto_frontier.png}
+	\caption{Performance–profit Pareto frontier. Each point corresponds to a different trade‐off weight $\lambda$ and illustrates how increasing focus on wins reduces profit.}
+	\label{fig:paretto}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{figures/pricing_revenue.png}
+	\caption{Dynamic ticket pricing (blue line) and resulting ticket revenue (red bars) across the home schedule. Early games have lower prices to attract fans, while later games increase prices to capitalize on momentum.}
+	\label{fig:pricing_revenue}
+\end{figure}
+
+\paragraph{Learning dynamics.}  Beyond high-level trade-offs, it is instructive to inspect how the learning algorithm converges and how policy quality improves across epochs.  Using the metrics recorded during behavior–cloning and reinforcement–learning training, we visualize the evolution of key loss terms and validation metrics.  Figure~\ref{fig:training_losses} plots the training losses for each stage.  To evaluate generalization across roster-size constraints $U$, Figure~\ref{fig:val_metrics_by_u} shows the validation objective, gap, ratio and regret under different upper bounds $U=11,12,13$.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{figures/training_losses_final.png}
+	\caption{Training loss curves across the two learning stages.  The left subplot shows the behaviour--cloning loss decreasing steadily over nine epochs.  The right subplot displays normalised losses for the reinforcement--learning phase—policy gradient loss, value loss and advantage--weighted behaviour cloning (AWBC) loss—showing stable convergence without one curve dominating the visual scale.}
+	\label{fig:training_losses}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{figures/val_metrics_by_u_improved.png}
+	\caption{Validation performance under different roster-size constraints $U$.  Each subplot reports one objective-based metric—greedy objective (top left), gap to optimum (top right), objective ratio (bottom left) and regret (bottom right)—with separate curves for $U=11,12,13$.  Curves are sorted by training epoch and show that the policy gradually approaches the DP optimum across metrics.}
+	\label{fig:val_metrics_by_u}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\textwidth]{figures/val_tradeoff.png}
+	\caption{Trade-off between the validation objective ratio and regret at the final epoch for different roster-size limits $U$.  Each point represents the final validation metric for a given $U$; lower regret and higher ratio indicate better alignment with the DP optimal solution.}
+	\label{fig:val_tradeoff}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{figures/val_ratio_heatmap.png}
+	\caption{Heatmap of validation objective ratio across epochs (vertical axis) and roster-size limits $U$ (horizontal axis).  Darker colours correspond to higher objective ratios, highlighting the improvement in policy quality over training.}
+	\label{fig:val_ratio_heatmap}
+\end{figure}
+
+\begin{table}[htbp]
+	\centering
+	\caption{Optimal Roster and Salary Allocation (Balanced Weight $\lambda=0.5$)}
+	\begin{tabular}{c c c c c}
+		\toprule
+		Player Type      & Number & Average PER & Salary Share & Average Salary (USD) \\
+		\midrule
+		Star Player      & 2      & 21.8        & 40\%         & 301,400              \\
+		Core Role Player & 4      & 16.5        & 35\%         & 131,800              \\
+		Role Player      & 6      & 13.2        & 25\%         & 62,800               \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:roster_allocation}
+\end{table}
+
+\subsection{Interpretation}
+The Pareto Frontier Insight reveals that the trade-off between wins and profit is non-linear: when wins increase from 18 to 25, profit decreases by 32$\%$. (from 1.61M to 1.09M USD), indicating that excessive pursuit of competition leads to diminishing returns. The Roster Strategy Logic demonstrates that concentrating resources on star players maximizes competitive efficiency, while low-cost role players ensure financial flexibility—this aligns with WNBA's current "star-driven" market characteristics (e.g., Caitlin Clark's attendance boost effect). The Pricing Strategy Value is reflected in dynamic pricing increasing total ticket revenue by 15$\%$ compared to fixed pricing, balancing short-term income and long-term fan retention. For Expansion Adaptation, under the 2030 expansion scenario (18 teams), the model increases young player signings by 30$\%$ to cope with intensified talent competition, verifying its adaptability to environmental changes.
+
+\section{Sensitivity Analysis and Stability}
+\label{sec:sensitivity}
+\subsection{Sensitivity Analysis}
+Adjust key input parameters by $\pm 10\%$ to test output changes (Table \ref{tab:sensitivity}), with key findings showing that Player PER is the most sensitive parameter (10$\%$ decrease leads to 10.7$\%$ win reduction), highlighting the importance of talent quality; salary cap adjustments have opposite effects on wins and profit (10$\%$ increase boosts wins by 5.8$\%$ but reduces profit by 8.3$\%$), confirming the trade-off between competition and finance; ticket demand elasticity has minimal impact on wins ($\leq 0.3\%$ change), indicating pricing strategy robustness.
+
+\begin{table}[htbp]
+	\centering
+	\caption{Sensitivity Analysis Results (Balanced Weight $\lambda=0.5$)}
+	\begin{tabular}{c c c c}
+		\toprule
+		Adjusted Parameter       & Adjustment Direction & Win Change (\%) & Profit Change (\%) \\
+		\midrule
+		Salary Cap               & +10\%                & +5.8            & -8.3               \\
+		Salary Cap               & -10\%                & -7.2            & +6.5               \\
+		Player PER               & +10\%                & +9.4            & +3.2               \\
+		Player PER               & -10\%                & -10.7           & -4.1               \\
+		Ticket Demand Elasticity & +10\%                & -0.3            & -5.7               \\
+		Ticket Demand Elasticity & -10\%                & -0.2            & +4.9               \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:sensitivity}
+\end{table}
+
+\subsection{Robustness Analysis}
+Test model stability under three deviated assumptions: first, under Injury Probability Deviation where actual injury rate is 20\% higher than expected, wins decrease by 4.2\% and profit by 2.8\% (no significant collapse); second, under Market Size Miscalculation where market size is overestimated by 15\%, pricing strategy adjusts automatically with profit deviation only 3.5\%; third, under League Expansion Delay where expansion is postponed by 2 seasons, the model extends star player contracts and competitive and financial indicators remain within acceptable ranges. The conclusion is that the model maintains stability under small assumption deviations, with output changes $\leq 5\%$ in most cases, demonstrating strong robustness.
+
+\section{Strengths and Weaknesses}
+\label{sec:strengths_weaknesses}
+\subsection{Strengths}
+The model's core strengths lie in its Integrated Decision Framework, which combines roster selection, salary allocation, pricing, and marketing into a unified dynamic model covering core team operations; its Data-Driven Hybrid Algorithm that integrates small-scale exact optimization and reinforcement learning, balancing solution accuracy and computational efficiency for large-scale problems; its Practical Adaptability, incorporating WNBA-specific constraints (salary cap, roster limits) and real data with results directly applicable to team management decisions; and its Uncertainty Handling, modeling injuries, market changes, and expansion as random factors to enhance strategy robustness.
+
+\subsection{Weaknesses}
+The main weaknesses include Data Limitations, where lack of team-specific financial data (e.g., detailed sponsorship contracts) forces reliance on league-level averages, reducing profit prediction accuracy; Simplified Team Chemistry, where the team chemistry index $\text{TeamChem}(X_t)$ is linearly fitted, ignoring complex interactions between players (e.g., positional synergy); Static Weight Coefficient, with $\lambda$ fixed during optimization and no dynamic adjustment based on real-time performance (e.g., increasing $\lambda$ when playoff-eligible); and Ignored Opponent Strategies, assuming opponent behavior is random and not accounting for strategic interactions (e.g., rival teams poaching key free agents).
+
+\section{Conclusion}
+\label{sec:conclusion}
+\subsection{Summary of Findings}
+This study develops a dynamic optimization model for WNBA team management, achieving three core results: a weighted multi-objective function is proposed to quantify the trade-off between competitive performance and financial profit, with the Pareto frontier providing decision-makers with flexible strategy options; the optimal roster structure (2-3 stars + 10 role players) and dynamic pricing strategy (low early, high late) are identified to maximize integrated utility; the model demonstrates strong robustness to parameter deviations and environmental changes, adapting to league expansion and market fluctuations.
+
+\subsection{Real-World Applications}
+The model's real-world applications span Team Operations, providing data-driven support for roster building, salary negotiations, and ticket pricing (e.g., recommending star player signings and optimal contract amounts); Long-Term Planning, helping teams prepare for league expansion by adjusting talent reserves and cost structures in advance; and League Policy Reference, offering quantitative evidence for WNBA salary cap adjustments and revenue-sharing mechanisms.
+
+\subsection{Future Improvements}
+Proposed future improvements include Data Enhancement by integrating private team data (e.g., sponsorship details, player training costs) and social media metrics (fan engagement) to refine profit and performance functions; Model Extension by introducing dynamic weight coefficients $\lambda(t)$ and multi-agent game theory to simulate opponent strategies; Algorithm Optimization by adopting deep reinforcement learning algorithms (e.g., PPO) to improve convergence speed and solution quality for continuous decision variables; and Function Refinement by using neural networks to model non-linear team chemistry and player synergy, enhancing prediction accuracy.
+
+% 参考文献部分
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

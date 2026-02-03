@@ -1,0 +1,58 @@
+\documentclass[a4paper]{article}
+
+\begin{document}
+
+% =========================
+% Report on Use of AI Tools (MCM/ICM)
+% One-page short version
+% =========================
+\section*{Report on Use of AI Tools}
+
+\begin{small}
+	\vspace{0.4em}
+	\noindent\textbf{Tools and Purposes (Summary).}
+	\begin{itemize}\setlength\itemsep{0.2em}
+		\item \textbf{OpenAI ChatGPT} (accessed Feb 2, 2026): (i) polishing and partial translation of team-written drafts; (ii) assisting figure caption wording; (iii) locating and summarizing publicly available background materials, followed by Chinese translation for comprehension.
+		\item \textbf{AI-assisted plotting/graphics tools} (local workflow, accessed during contest window): generating plots strictly from \emph{team-produced data} and composing figures (layout/formatting only).
+		\item \textbf{AI diagram rendering from Mermaid} (accessed during contest window): reproducing diagrams from \emph{team-authored Mermaid code} without changing diagram logic.
+	\end{itemize}
+
+	\vspace{0.4em}
+	\noindent\textbf{Human Oversight and Verification.}
+	All AI-assisted text was reviewed and revised by team members to ensure technical correctness and consistent terminology. Any AI-assisted background information was cross-checked against original sources when used. AI tools were \emph{not} used to directly generate the core model, derive key equations, implement optimization/simulation results, or draw final conclusions.
+
+	\vspace{0.6em}
+	\noindent\textbf{Example: AI-assisted literature search (query + short AI reply).}
+	The following example illustrates a typical question we asked to consolidate scattered information available online.
+
+	\medskip
+	\noindent\textbf{Query (to AI).}
+	\begin{quote}\ttfamily
+		Please help me find representative papers or keywords about combining LSTM and Transformer
+		for time-series forecasting (e.g., hybrid encoders, LSTM+attention fusion, or architectures like
+		TFT). Google results are scattered; I need a compact reading list and search terms. For each
+		suggestion, briefly explain why it is relevant and what to search for next.
+	\end{quote}
+
+	\noindent\textbf{AI Output.}
+	\begin{quote}\ttfamily
+		A practical way to cover "LSTM + Transformer" literature is to search by (1) named hybrid
+		architectures, (2) combination patterns, and (3) application domains.\newline
+		1) Named/representative direction: Temporal Fusion Transformer (TFT) is a widely cited
+		multi-horizon forecasting framework that combines recurrent components (LSTM-style temporal
+		processing) with interpretable multi-head attention; search: "Temporal Fusion Transformer
+		multi-horizon forecasting LSTM attention".\newline
+		2) Combination patterns: look for "LSTM-Transformer hybrid", "Transformer-LSTM encoder-decoder",
+		"recurrent encoder + self-attention", "attention over LSTM states", "LSTM embedding + Transformer
+		decoder". These usually keep LSTM for local/short-term dynamics and attention for long-range
+		dependencies.\newline
+		3) Domain anchors: add your domain keyword (e.g., "energy", "finance", "traffic", "RUL") to narrow
+		high-quality papers; search: "LSTM-Transformer hybrid time series forecasting + <domain>".\newline
+		Next steps: start from TFT and its citations ("cited by") to locate related hybrids, then use the
+		pattern keywords above to expand the reading list.
+	\end{quote}
+
+	\vspace{0.4em}
+\end{small}
+
+\end{document}
